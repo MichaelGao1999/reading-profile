@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>我的微信读书品味分析</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-snap-type: y mandatory; }
+  body { background: #000; color: #fff; font-family: 'Inter', -apple-system, sans-serif; overflow-x: hidden; }
+  ::selection { background: rgba(255,255,255,0.15); }
+
+  .slide {
+    min-height: 100vh; width: 100%;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 60px 8%; position: relative;
+    scroll-snap-align: start;
+  }
+
+  /* Navigation */
+  .nav-dots {
+    position: fixed; right: 28px; top: 50%; transform: translateY(-50%);
+    z-index: 100; display: flex; flex-direction: column; gap: 10px;
+  }
+  .nav-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: rgba(255,255,255,0.2); cursor: pointer; transition: all 0.3s;
+    border: none;
+  }
+  .nav-dot:hover { background: rgba(255,255,255,0.4); }
+  .nav-dot.active { background: #fff; transform: scale(1.3); }
+  .nav-dot span { display: none; }
+
+  /* Typography */
+  h1 { font-family: 'Noto Serif SC', serif; font-size: clamp(2.5rem, 5vw, 4.5rem); font-weight: 700; line-height: 1.2; }
+  h2 { font-family: 'Noto Serif SC', serif; font-size: clamp(1.6rem, 3vw, 2.8rem); font-weight: 600; margin-bottom: 12px; }
+  h3 { font-size: clamp(1rem, 1.5vw, 1.4rem); font-weight: 600; }
+  .subtitle { color: #888; font-size: clamp(0.9rem, 1.2vw, 1.1rem); font-weight: 400; letter-spacing: 0.02em; }
+  .muted { color: #666; }
+  .accent { color: #fff; }
+
+  /* Key stat */
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 30px; margin: 40px 0; }
+  .stat-card { text-align: center; }
+  .stat-num { font-size: clamp(2.5rem, 4vw, 4rem); font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
+  .stat-label { color: #666; font-size: 0.85rem; margin-top: 8px; letter-spacing: 0.05em; text-transform: uppercase; }
+
+  /* Charts */
+  .chart { display: flex; align-items: flex-end; gap: 8px; height: 200px; margin: 40px 0; }
+  .chart-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; }
+  .chart-bar { width: 100%; max-width: 48px; background: linear-gradient(180deg, #fff 0%, #444 100%); border-radius: 4px 4px 0 0; min-height: 2px; transition: height 1.5s cubic-bezier(0.22, 1, 0.36, 1); }
+  .chart-label { color: #666; font-size: 0.75rem; margin-top: 10px; text-align: center; }
+  .chart-val { color: #888; font-size: 0.7rem; margin-bottom: 6px; }
+
+  /* Book cards */
+  .book-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 24px; margin: 30px 0; }
+  .book-card { text-align: center; cursor: default; }
+  .book-cover { width: 100%; aspect-ratio: 3/4; object-fit: cover; border-radius: 6px; background: #1a1a1a; display: block; transition: transform 0.3s; }
+  .book-card:hover .book-cover { transform: scale(1.04); }
+  .book-title { font-size: 0.8rem; margin-top: 10px; font-weight: 500; line-height: 1.3; }
+  .book-author { font-size: 0.7rem; color: #666; margin-top: 3px; }
+  .book-hours { font-size: 0.7rem; color: #888; margin-top: 2px; }
+
+  /* Book rows */
+  .book-row { display: flex; gap: 20px; margin: 16px 0; align-items: center; }
+  .book-row-cover { width: 48px; height: 64px; object-fit: cover; border-radius: 4px; background: #1a1a1a; flex-shrink: 0; }
+  .book-row-info { flex: 1; min-width: 0; }
+  .book-row-title { font-weight: 600; font-size: 0.95rem; }
+  .book-row-meta { color: #666; font-size: 0.8rem; margin-top: 2px; }
+  .book-row-hours { color: #888; font-size: 0.85rem; font-weight: 500; flex-shrink: 0; }
+
+  /* Trait cards */
+  .trait-list { display: flex; flex-direction: column; gap: 16px; margin: 30px 0; }
+  .trait-item { padding: 20px 24px; background: rgba(255,255,255,0.04); border-radius: 12px; border-left: 3px solid rgba(255,255,255,0.2); }
+  .trait-icon { font-size: 1.5rem; margin-bottom: 6px; }
+  .trait-title { font-weight: 600; font-size: 1rem; }
+  .trait-desc { color: #888; font-size: 0.85rem; margin-top: 4px; line-height: 1.5; }
+
+  /* Quote block */
+  .quote { 
+    font-family: 'Noto Serif SC', serif;
+    font-size: clamp(1.1rem, 2vw, 1.6rem);
+    color: rgba(255,255,255,0.75);
+    line-height: 1.7;
+    max-width: 720px;
+    margin: 20px 0;
+    padding: 20px 0;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    font-style: italic;
+  }
+  .quote-attrib { font-family: 'Inter', sans-serif; font-size: 0.8rem; color: #555; font-style: normal; margin-top: 8px; }
+
+  /* Tag */
+  .tag { display: inline-block; padding: 3px 10px; border-radius: 100px; background: rgba(255,255,255,0.06); color: #888; font-size: 0.7rem; letter-spacing: 0.03em; margin-top: 6px; }
+
+  /* Influence grid */
+  .influence-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 24px 0; }
+  .influence-item { background: rgba(255,255,255,0.04); border-radius: 10px; padding: 16px; text-align: center; }
+  .influence-icon { font-size: 1.6rem; margin-bottom: 6px; }
+  .influence-book { font-size: 0.85rem; font-weight: 600; }
+  .influence-impact { font-size: 0.7rem; color: #666; margin-top: 3px; line-height: 1.4; }
+
+  /* Numbered rank */
+  .rank-list { margin: 24px 0; }
+  .rank-item { display: flex; align-items: center; gap: 16px; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .rank-num { font-size: 0.8rem; color: #555; font-weight: 600; width: 24px; flex-shrink: 0; }
+  .rank-cover { width: 36px; height: 48px; object-fit: cover; border-radius: 3px; background: #1a1a1a; flex-shrink: 0; }
+  .rank-info { flex: 1; min-width: 0; }
+  .rank-title { font-size: 0.85rem; font-weight: 500; }
+  .rank-meta { font-size: 0.7rem; color: #555; }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .slide { padding: 40px 6%; }
+    .nav-dots { right: 12px; }
+    .book-grid { grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .influence-grid { grid-template-columns: repeat(2, 1fr); }
+    .stat-grid { grid-template-columns: repeat(2, 1fr); gap: 20px; }
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 0; }
+  
+  /* Arrow hint */
+  .scroll-hint { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); color: #444; font-size: 0.75rem; letter-spacing: 0.1em; animation: fadeBounce 2s infinite; }
+  @keyframes fadeBounce { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.8; transform: translateX(-50%) translateY(4px); } }
+
+  .section-label {
+    color: #555;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+</style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="nav-dots" id="navDots"></nav>
+
+<!-- ===== SLIDE 1: COVER ===== -->
+<section class="slide" id="s1">
+  <div style="max-width: 800px;">
+    <div style="font-size: 0.75rem; color: #555; letter-spacing: 0.1em; margin-bottom: 24px;">微信读书 · 2019–2026</div>
+    <h1>我的阅读<br>品味分析</h1>
+    <div style="margin-top: 40px; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.08);">
+      <div style="font-size: 0.9rem; color: #888; line-height: 1.6;">
+       1,357 小时 · 1,224 天 · 跨越 7 年的阅读轨迹
+      </div>
+    </div>
+  </div>
+  <div class="scroll-hint">向下滚动</div>
+</section>
+
+<!-- ===== SLIDE 2: OVERVIEW ===== -->
+<section class="slide" id="s2">
+  <div class="section-label">Overview</div>
+  <h2>阅读概览</h2>
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-num">1,357</div>
+      <div class="stat-label">累计阅读（小时）</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">1,224</div>
+      <div class="stat-label">阅读天数</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">7</div>
+      <div class="stat-label">活跃年数</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">474h</div>
+      <div class="stat-label">最高年（2025）</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">298h</div>
+      <div class="stat-label">今年已读（2026）</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">65h</div>
+      <div class="stat-label">单月最高（4月）</div>
+    </div>
+  </div>
+  <div class="quote">
+    给岁月以文明，而不是给文明以岁月
+    <div class="quote-attrib">—— 刘慈欣《三体》</div>
+  </div>
+</section>
+
+<!-- ===== SLIDE 3: YEARLY TREND ===== -->
+<section class="slide" id="s3">
+  <div class="section-label">Trend</div>
+  <h2>年度阅读趋势</h2>
+  <div class="chart" id="yearChart"></div>
+  <div style="color: #555; font-size: 0.85rem; margin-top: 10px;">
+    2024–2025 爆发式增长，2026 持续高位
+  </div>
+</section>
+
+<!-- ===== SLIDE 4: MONTHLY 2026 ===== -->
+<section class="slide" id="s4">
+  <div class="section-label">2026 Rhythm</div>
+  <h2>今年阅读节奏</h2>
+  <div class="chart" id="monthChart"></div>
+  <div style="color: #555; font-size: 0.85rem; margin-top: 10px;">
+    2–4 月高峰（月均 62h），日均超 2 小时
+  </div>
+</section>
+
+<!-- ===== SLIDE 5: TOP BOOKS ALL TIME ===== -->
+<section class="slide" id="s5">
+  <div class="section-label">All-Time Top 10</div>
+  <h2>终身最爱</h2>
+  <div class="rank-list" id="topBooks"></div>
+</section>
+
+<!-- ===== SLIDE 6: 2026 BOOKS ===== -->
+<section class="slide" id="s6">
+  <div class="section-label">2026 Reads</div>
+  <h2>今年重点书目</h2>
+  <div class="book-grid" id="books2026"></div>
+  <div class="quote" style="margin-top: 30px;">
+    恐惧是思维的杀手。我将面对我的恐惧，让它穿越我的身体。
+    <div class="quote-attrib">—— 弗兰克·赫伯特《沙丘》</div>
+  </div>
+</section>
+
+<!-- ===== SLIDE 7: TASTE PROFILE ===== -->
+<section class="slide" id="s7">
+  <div class="section-label">Profile</div>
+  <h2>品味画像</h2>
+  <div class="trait-list">
+    <div class="trait-item">
+      <div class="trait-icon">🌌</div>
+      <div class="trait-title">科幻深度爱好者</div>
+      <div class="trait-desc">沙丘、三体、神经漫游者、太空漫游——从黄金时代到赛博朋克，横跨百年科幻史。你对"异世界"的想象永不满足。</div>
+    </div>
+    <div class="trait-item">
+      <div class="trait-icon">🏰</div>
+      <div class="trait-title">史诗奇幻痴迷者</div>
+      <div class="trait-desc">冰与火之歌 130 小时居首，凡人修仙传 111 小时紧随。世界构建、权力博弈、修仙体系——大格局的故事是你的精神食粮。</div>
+    </div>
+    <div class="trait-item">
+      <div class="trait-icon">🇷🇺</div>
+      <div class="trait-title">俄国文学修养者</div>
+      <div class="trait-desc">战争与和平 + 安娜·卡列尼娜 + 卡拉马佐夫兄弟——三大部全啃完。托尔斯泰和陀思妥耶夫斯基双峰并立，这份阅读量极少人达到。</div>
+    </div>
+    <div class="trait-item">
+      <div class="trait-icon">✍️</div>
+      <div class="trait-title">写作者视角</div>
+      <div class="trait-desc">《故事：材质、结构、风格和银幕剧作的原理》笔记最多——不只是读，更在拆解叙事的手艺。你在学习如何构建自己的世界。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SLIDE 8: FROM READING TO WRITING ===== -->
+<section class="slide" id="s8">
+  <div class="section-label">From Reading to Writing</div>
+  <h2>阅读如何滋养创作</h2>
+  <p style="color: #888; font-size: 1rem; max-width: 600px; margin-bottom: 24px;">
+    你在创作的科幻长篇《临界点》（2099 年架空历史）——正是这些阅读品味的自然延伸。
+  </p>
+  <div class="influence-grid">
+    <div class="influence-item">
+      <div class="influence-icon">🏜️</div>
+      <div class="influence-book">沙丘</div>
+      <div class="influence-impact">政治寓言 × 生态史诗</div>
+    </div>
+    <div class="influence-item">
+      <div class="influence-icon">🌌</div>
+      <div class="influence-book">三体</div>
+      <div class="influence-impact">宇宙尺度 × 文明博弈</div>
+    </div>
+    <div class="influence-item">
+      <div class="influence-icon">🐉</div>
+      <div class="influence-book">冰与火之歌</div>
+      <div class="influence-impact">多视角叙事 × 灰色人物</div>
+    </div>
+    <div class="influence-item">
+      <div class="influence-icon">💻</div>
+      <div class="influence-book">神经漫游者</div>
+      <div class="influence-impact">反乌托邦 × 赛博空间</div>
+    </div>
+    <div class="influence-item">
+      <div class="influence-icon">✍️</div>
+      <div class="influence-book">故事（麦基）</div>
+      <div class="influence-impact">叙事结构 × 场景法则</div>
+    </div>
+    <div class="influence-item">
+      <div class="influence-icon">📜</div>
+      <div class="influence-book">战争与和平</div>
+      <div class="influence-impact">历史洪流 × 个人命运</div>
+    </div>
+  </div>
+  <div class="quote" style="margin-top: 16px;">
+    一个好的故事不是告诉你世界是什么样，而是让你感受到世界可以是什么样。
+    <div class="quote-attrib">—— 罗伯特·麦基《故事》</div>
+  </div>
+</section>
+
+<!-- ===== SLIDE 9: CLOSING ===== -->
+<section class="slide" id="s9">
+  <div style="max-width: 600px; text-align: center; margin: 0 auto;">
+    <h2 style="margin-bottom: 16px;">继续读，继续写</h2>
+    <p style="color: #666; font-size: 0.95rem; line-height: 1.6;">
+      数据来源：微信读书 · 生成：Hermes AI<br>
+      Michael Gao · 2026
+    </p>
+    <div style="margin-top: 40px; color: #444; font-size: 0.75rem; letter-spacing: 0.15em;">
+      完
+    </div>
+  </div>
+</section>
+
+<script>
+// Data
+const books = [
+  { title: '冰与火之歌', author: '乔治·马丁', hours: 130, cover: 'https://cdn.weread.qq.com/weread/cover/8/yuewen_849878/s_yuewen_8498781681371731.jpg', tag: '史诗奇幻' },
+  { title: '凡人修仙传', author: '忘语', hours: 111, cover: 'https://res.weread.qq.com/wrepub/CB_7dbE67E4qD7w6ng6pCCFu4nm_parsecover', tag: '仙侠' },
+  { title: '战争与和平', author: '列夫·托尔斯泰', hours: 108, cover: 'https://cdn.weread.qq.com/weread/cover/84/YueWen_26001269/s_YueWen_26001269.jpg', tag: '俄国文学' },
+  { title: '沙丘六部曲', author: '弗兰克·赫伯特', hours: 106, cover: 'https://cdn.weread.qq.com/weread/cover/61/yuewen_26859515/s_yuewen_268595151708661295.jpg', tag: '科幻史诗' },
+  { title: '永夜君王', author: '烟雨江南', hours: 43, cover: 'https://cdn.weread.qq.com/weread/cover/24/YueWen_561840/s_YueWen_561840.jpg', tag: '奇幻' },
+  { title: '何伟三部曲', author: '彼得·海斯勒', hours: 37, cover: 'https://cdn.weread.qq.com/weread/cover/64/YueWen_23796131/s_YueWen_23796131.jpg', tag: '非虚构' },
+  { title: '三体全集', author: '刘慈欣', hours: 32, cover: 'https://cdn.weread.qq.com/weread/cover/80/yuewen_695233/s_yuewen_6952331740758482.jpg', tag: '中国科幻' },
+  { title: '安娜·卡列尼娜', author: '列夫·托尔斯泰', hours: 31, cover: 'https://cdn.weread.qq.com/weread/cover/90/YueWen_856175/s_YueWen_856175.jpg', tag: '俄国文学' },
+  { title: '卡拉马佐夫兄弟', author: '陀思妥耶夫斯基', hours: 30, cover: 'https://cdn.weread.qq.com/weread/cover/28/YueWen_31808219/s_YueWen_31808219.jpg', tag: '俄国文学' },
+  { title: '神经漫游者三部曲', author: '威廉·吉布森', hours: 29, cover: 'https://cdn.weread.qq.com/weread/cover/11/3300009811/s_3300009811.jpg', tag: '赛博朋克' },
+];
+
+const books2026 = [
+  { title: '沙丘六部曲', author: '弗兰克·赫伯特', hours: 106, cover: 'https://cdn.weread.qq.com/weread/cover/61/yuewen_26859515/s_yuewen_268595151708661295.jpg', note: '单日阅读最久' },
+  { title: '神经漫游者三部曲', author: '威廉·吉布森', hours: 29, cover: 'https://cdn.weread.qq.com/weread/cover/11/3300009811/s_3300009811.jpg', note: '赛博朋克圣经' },
+  { title: '故事', author: '罗伯特·麦基', hours: 28, cover: 'https://wfqqreader-1252317822.image.myqcloud.com/cover/797/568797/s_568797.jpg', note: '笔记最多' },
+  { title: '冰与火之歌（续）', author: '乔治·马丁', hours: 24, cover: 'https://cdn.weread.qq.com/weread/cover/8/yuewen_849878/s_yuewen_8498781681371731.jpg', note: '持续重读' },
+  { title: '海底两万里', author: '儒勒·凡尔纳', hours: 14, cover: 'https://cdn.weread.qq.com/weread/cover/51/yuewen_25169132/s_yuewen_251691321750667756.jpg', note: '经典科幻' },
+  { title: '2001:太空漫游', author: '阿瑟·克拉克', hours: 12, cover: 'https://res.weread.qq.com/wrepub/CB_AYt5V55WC02f72D71F39e9PQ_parsecover', note: '刘慈欣的启蒙' },
+  { title: '植物的战斗', author: '汪诘', hours: 10, cover: 'https://wfqqreader-1252317822.image.myqcloud.com/cover/703/43168703/s_43168703.jpg', note: '科普佳作' },
+  { title: '太空漫游四部曲', author: '阿瑟·克拉克', hours: 9, cover: 'https://wfqqreader-1252317822.image.myqcloud.com/cover/482/25551482/s_25551482.jpg', note: '科幻经典' },
+  { title: '莎士比亚全集', author: '威廉·莎士比亚', hours: 7, cover: 'https://cdn.weread.qq.com/weread/cover/97/YueWen_31283837/s_YueWen_31283837.jpg', note: '文学根基' },
+];
+
+const yearData = [81, 16, 11, 11, 81, 384, 474, 298];
+const yearLabels = ['2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
+const monthData = [39, 63, 59, 65, 44, 28];
+const monthLabels = ['1月','2月','3月','4月','5月','6月'];
+
+// Build chart
+function buildChart(id, data, labels) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const max = Math.max(...data);
+  el.innerHTML = data.map((v, i) => `
+    <div class="chart-bar-wrap">
+      <div class="chart-val">${v}h</div>
+      <div class="chart-bar" style="height: ${(v/max)*100}%; background: linear-gradient(180deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.15) 100%);"></div>
+      <div class="chart-label">${labels[i]}</div>
+    </div>
+  `).join('');
+}
+
+// Build rank list
+function buildRankList() {
+  const el = document.getElementById('topBooks');
+  if (!el) return;
+  el.innerHTML = books.map((b, i) => `
+    <div class="rank-item">
+      <div class="rank-num">${i+1}</div>
+      <img class="rank-cover" src="${b.cover}" alt="${b.title}" loading="lazy"
+        onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2236%22 height=%2248%22><rect fill=%22%231a1a1a%22 width=%2236%22 height=%2248%22/></svg>'">
+      <div class="rank-info">
+        <div class="rank-title">${b.title}</div>
+        <div class="rank-meta">${b.author} · ${b.tag}</div>
+      </div>
+      <div style="color:#888;font-weight:600;font-size:0.85rem;">${b.hours}h</div>
+    </div>
+  `).join('');
+}
+
+// Build 2026 book grid
+function build2026Grid() {
+  const el = document.getElementById('books2026');
+  if (!el) return;
+  const top = books2026.slice(0, 6);
+  el.innerHTML = top.map(b => `
+    <div class="book-card">
+      <img class="book-cover" src="${b.cover}" alt="${b.title}" loading="lazy"
+        onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22140%22 height=%22187%22><rect fill=%22%231a1a1a%22 width=%22140%22 height=%22187%22/></svg>'">
+      <div class="book-title">${b.title}</div>
+      <div class="book-author">${b.author}</div>
+      <div class="book-hours">${b.hours}h · ${b.note}</div>
+    </div>
+  `).join('');
+}
+
+// Navigation dots
+function initNav() {
+  const slides = document.querySelectorAll('.slide');
+  const nav = document.getElementById('navDots');
+  slides.forEach((_, i) => {
+    const dot = document.createElement('button');
+    dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+    dot.setAttribute('aria-label', `Slide ${i+1}`);
+    dot.addEventListener('click', () => {
+      slides[i].scrollIntoView({ behavior: 'smooth' });
+    });
+    nav.appendChild(dot);
+  });
+
+  // Observer
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const idx = Array.from(slides).indexOf(entry.target);
+        document.querySelectorAll('.nav-dot').forEach((d, i) => {
+          d.classList.toggle('active', i === idx);
+        });
+      }
+    });
+  }, { threshold: 0.5 });
+
+  slides.forEach(s => observer.observe(s));
+}
+
+// Key navigation
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+    e.preventDefault();
+    const active = document.querySelector('.nav-dot.active');
+    const next = active?.nextElementSibling;
+    if (next) next.click();
+  } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+    e.preventDefault();
+    const active = document.querySelector('.nav-dot.active');
+    const prev = active?.previousElementSibling;
+    if (prev) prev.click();
+  }
+});
+
+// Init
+document.addEventListener('DOMContentLoaded', () => {
+  buildChart('yearChart', yearData, yearLabels);
+  buildChart('monthChart', monthData, monthLabels);
+  buildRankList();
+  build2026Grid();
+  initNav();
+});
+</script>
+</body>
+</html>
