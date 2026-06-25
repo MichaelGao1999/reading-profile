@@ -6,125 +6,83 @@
 <title>我的微信读书品味分析</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  html { scroll-behavior: smooth; scroll-snap-type: y mandatory; }
-  body { background: #000; color: #fff; font-family: 'Inter', -apple-system, sans-serif; overflow-x: hidden; }
-  ::selection { background: rgba(255,255,255,0.15); }
-
-  .slide {
-    min-height: 100vh; width: 100%;
-    display: flex; flex-direction: column; justify-content: center;
-    padding: 60px 8%; position: relative;
-    scroll-snap-align: start;
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth;scroll-snap-type:y mandatory}
+  body{background:#000;color:#fff;font-family:'Inter',-apple-system,sans-serif;overflow-x:hidden}
+  ::selection{background:rgba(255,255,255,0.15)}
+  .slide{min-height:100vh;width:100%;display:flex;flex-direction:column;justify-content:center;padding:60px 8%;position:relative;scroll-snap-align:start}
+  .nav-dots{position:fixed;right:28px;top:50%;transform:translateY(-50%);z-index:100;display:flex;flex-direction:column;gap:10px}
+  .nav-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.2);cursor:pointer;transition:all 0.3s;border:none}
+  .nav-dot:hover{background:rgba(255,255,255,0.4)}
+  .nav-dot.active{background:#fff;transform:scale(1.3)}
+  h1{font-family:'Noto Serif SC',serif;font-size:clamp(2.5rem,5vw,4.5rem);font-weight:700;line-height:1.2}
+  h2{font-family:'Noto Serif SC',serif;font-size:clamp(1.6rem,3vw,2.8rem);font-weight:600;margin-bottom:12px}
+  .section-label{color:#555;font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:24px}
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:30px;margin:40px 0}
+  .stat-card{text-align:center}
+  .stat-num{font-size:clamp(2.5rem,4vw,4rem);font-weight:700;letter-spacing:-0.02em;line-height:1}
+  .stat-label{color:#666;font-size:0.85rem;margin-top:8px;letter-spacing:0.05em;text-transform:uppercase}
+  .chart{display:flex;align-items:flex-end;gap:8px;height:200px;margin:40px 0}
+  .chart-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;height:100%;justify-content:flex-end}
+  .chart-bar{width:100%;max-width:48px;background:linear-gradient(180deg,rgba(255,255,255,0.9) 0%,rgba(255,255,255,0.15) 100%);border-radius:4px 4px 0 0;min-height:2px;transition:height 1.5s cubic-bezier(0.22,1,0.36,1)}
+  .chart-label{color:#666;font-size:0.75rem;margin-top:10px;text-align:center}
+  .chart-val{color:#888;font-size:0.7rem;margin-bottom:6px}
+  .book-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:24px;margin:30px 0}
+  .book-card{text-align:center;cursor:default}
+  .book-cover{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:6px;background:#1a1a1a;display:block;transition:transform 0.3s}
+  .book-card:hover .book-cover{transform:scale(1.04)}
+  .book-title{font-size:0.8rem;margin-top:10px;font-weight:500;line-height:1.3}
+  .book-author{font-size:0.7rem;color:#666;margin-top:3px}
+  .book-hours{font-size:0.7rem;color:#888;margin-top:2px}
+  .trait-list{display:flex;flex-direction:column;gap:14px;margin:30px 0}
+  .trait-item{padding:18px 24px;background:rgba(255,255,255,0.04);border-radius:12px;border-left:3px solid rgba(255,255,255,0.2)}
+  .trait-label{color:#555;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px}
+  .trait-title{font-weight:600;font-size:1rem}
+  .trait-desc{color:#888;font-size:0.85rem;margin-top:4px;line-height:1.6}
+  .quote{font-family:'Noto Serif SC',serif;font-size:clamp(1.1rem,2vw,1.6rem);color:rgba(255,255,255,0.75);line-height:1.7;max-width:720px;margin:20px 0;padding:20px 0;border-top:1px solid rgba(255,255,255,0.08);font-style:italic}
+  .quote-attrib{font-family:'Inter',sans-serif;font-size:0.8rem;color:#555;font-style:normal;margin-top:8px}
+  .influence-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:24px 0}
+  .influence-item{background:rgba(255,255,255,0.04);border-radius:10px;padding:16px;text-align:center}
+  .influence-tag{font-size:0.6rem;color:#555;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px}
+  .influence-book{font-size:0.85rem;font-weight:600}
+  .influence-impact{font-size:0.7rem;color:#666;margin-top:4px;line-height:1.4}
+  .scroll-hint{position:absolute;bottom:30px;left:50%;transform:translateX(-50%);color:#444;font-size:0.65rem;letter-spacing:0.15em;animation:fadeBounce 2s infinite}
+  @keyframes fadeBounce{0%,100%{opacity:0.3}50%{opacity:0.8;transform:translateX(-50%) translateY(4px)}}
+  /* Book detail page layout */
+  .book-detail{display:flex;gap:60px;align-items:center;margin:20px 0}
+  .book-detail-cover{width:200px;flex-shrink:0}
+  .book-detail-cover img{width:100%;border-radius:8px;background:#1a1a1a}
+  .book-detail-info{flex:1;min-width:0}
+  .book-detail-title{font-family:'Noto Serif SC',serif;font-size:clamp(1.3rem,2.5vw,2rem);font-weight:700}
+  .book-detail-author{color:#666;font-size:0.9rem;margin-top:4px}
+  .book-detail-stats{color:#888;font-size:0.8rem;margin-top:2px}
+  .book-detail-quotes{margin-top:24px}
+  .book-detail-quote{padding:16px 0;border-top:1px solid rgba(255,255,255,0.06)}
+  .book-detail-quote:first-child{border-top:none}
+  .book-detail-quote-text{font-family:'Noto Serif SC',serif;font-size:clamp(0.95rem,1.5vw,1.15rem);color:rgba(255,255,255,0.7);line-height:1.7;font-style:italic}
+  .book-detail-quote-src{font-family:'Inter',sans-serif;font-size:0.75rem;color:#444;margin-top:4px;font-style:normal}
+  @media(max-width:768px){
+    .slide{padding:40px 6%}
+    .nav-dots{right:12px}
+    .book-grid{grid-template-columns:repeat(3,1fr);gap:14px}
+    .influence-grid{grid-template-columns:repeat(2,1fr)}
+    .stat-grid{grid-template-columns:repeat(2,1fr);gap:20px}
+    .book-detail{flex-direction:column;gap:24px}
+    .book-detail-cover{width:140px}
   }
-
-  /* Navigation */
-  .nav-dots {
-    position: fixed; right: 28px; top: 50%; transform: translateY(-50%);
-    z-index: 100; display: flex; flex-direction: column; gap: 10px;
-  }
-  .nav-dot {
-    width: 8px; height: 8px; border-radius: 50%;
-    background: rgba(255,255,255,0.2); cursor: pointer; transition: all 0.3s;
-    border: none;
-  }
-  .nav-dot:hover { background: rgba(255,255,255,0.4); }
-  .nav-dot.active { background: #fff; transform: scale(1.3); }
-
-  /* Typography */
-  h1 { font-family: 'Noto Serif SC', serif; font-size: clamp(2.5rem, 5vw, 4.5rem); font-weight: 700; line-height: 1.2; }
-  h2 { font-family: 'Noto Serif SC', serif; font-size: clamp(1.6rem, 3vw, 2.8rem); font-weight: 600; margin-bottom: 12px; }
-  h3 { font-size: clamp(1rem, 1.5vw, 1.4rem); font-weight: 600; }
-  .subtitle { color: #888; font-size: clamp(0.9rem, 1.2vw, 1.1rem); font-weight: 400; letter-spacing: 0.02em; }
-  .muted { color: #666; }
-  .section-label {
-    color: #555;
-    font-size: 0.7rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    margin-bottom: 24px;
-  }
-
-  /* Key stats */
-  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 30px; margin: 40px 0; }
-  .stat-card { text-align: center; }
-  .stat-num { font-size: clamp(2.5rem, 4vw, 4rem); font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
-  .stat-label { color: #666; font-size: 0.85rem; margin-top: 8px; letter-spacing: 0.05em; text-transform: uppercase; }
-
-  /* Charts */
-  .chart { display: flex; align-items: flex-end; gap: 8px; height: 200px; margin: 40px 0; }
-  .chart-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; }
-  .chart-bar { width: 100%; max-width: 48px; background: linear-gradient(180deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.15) 100%); border-radius: 4px 4px 0 0; min-height: 2px; transition: height 1.5s cubic-bezier(0.22, 1, 0.36, 1); }
-  .chart-label { color: #666; font-size: 0.75rem; margin-top: 10px; text-align: center; }
-  .chart-val { color: #888; font-size: 0.7rem; margin-bottom: 6px; }
-
-  /* Book grid */
-  .book-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 24px; margin: 30px 0; }
-  .book-card { text-align: center; cursor: default; }
-  .book-cover { width: 100%; aspect-ratio: 3/4; object-fit: cover; border-radius: 6px; background: #1a1a1a; display: block; transition: transform 0.3s; }
-  .book-card:hover .book-cover { transform: scale(1.04); }
-  .book-title { font-size: 0.8rem; margin-top: 10px; font-weight: 500; line-height: 1.3; }
-  .book-author { font-size: 0.7rem; color: #666; margin-top: 3px; }
-  .book-hours { font-size: 0.7rem; color: #888; margin-top: 2px; }
-
-  /* Trait cards */
-  .trait-list { display: flex; flex-direction: column; gap: 14px; margin: 30px 0; }
-  .trait-item { padding: 18px 24px; background: rgba(255,255,255,0.04); border-radius: 12px; border-left: 3px solid rgba(255,255,255,0.2); }
-  .trait-label { color: #555; font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px; }
-  .trait-title { font-weight: 600; font-size: 1rem; }
-  .trait-desc { color: #888; font-size: 0.85rem; margin-top: 4px; line-height: 1.6; }
-
-  /* Quote block */
-  .quote { 
-    font-family: 'Noto Serif SC', serif;
-    font-size: clamp(1.1rem, 2vw, 1.6rem);
-    color: rgba(255,255,255,0.75);
-    line-height: 1.7;
-    max-width: 720px;
-    margin: 20px 0;
-    padding: 20px 0;
-    border-top: 1px solid rgba(255,255,255,0.08);
-    font-style: italic;
-  }
-  .quote-attrib { font-family: 'Inter', sans-serif; font-size: 0.8rem; color: #555; font-style: normal; margin-top: 8px; }
-
-  /* Influence grid */
-  .influence-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 24px 0; }
-  .influence-item { background: rgba(255,255,255,0.04); border-radius: 10px; padding: 16px; text-align: center; }
-  .influence-tag { font-size: 0.6rem; color: #555; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; }
-  .influence-book { font-size: 0.85rem; font-weight: 600; }
-  .influence-impact { font-size: 0.7rem; color: #666; margin-top: 4px; line-height: 1.4; }
-
-  /* Scroll hint */
-  .scroll-hint { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); color: #444; font-size: 0.65rem; letter-spacing: 0.15em; animation: fadeBounce 2s infinite; }
-  @keyframes fadeBounce { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.8; transform: translateX(-50%) translateY(4px); } }
-
-  /* Responsive */
-  @media (max-width: 768px) {
-    .slide { padding: 40px 6%; }
-    .nav-dots { right: 12px; }
-    .book-grid { grid-template-columns: repeat(3, 1fr); gap: 14px; }
-    .influence-grid { grid-template-columns: repeat(2, 1fr); }
-    .stat-grid { grid-template-columns: repeat(2, 1fr); gap: 20px; }
-  }
-
-  ::-webkit-scrollbar { width: 0; }
+  ::-webkit-scrollbar{width:0}
 </style>
 </head>
 <body>
-
 <nav class="nav-dots" id="navDots"></nav>
 
 <!-- 1: COVER -->
 <section class="slide" id="s1">
-  <div style="max-width: 800px;">
-    <div style="font-size: 0.75rem; color: #555; letter-spacing: 0.1em; margin-bottom: 24px;">WEREAD · 2019–2026</div>
+  <div style="max-width:800px">
+    <div style="font-size:0.75rem;color:#555;letter-spacing:0.1em;margin-bottom:24px">WEREAD · 2019–2026</div>
     <h1>阅读品味分析</h1>
-    <div style="margin-top: 40px; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.08);">
-      <div style="font-size: 0.9rem; color: #888; line-height: 1.6;">
-       1,357 小时 · 1,224 天 · 跨越 7 年的阅读轨迹
-      </div>
+    <div style="margin-top:40px;padding-top:24px;border-top:1px solid rgba(255,255,255,0.08)">
+      <div style="font-size:0.9rem;color:#888;line-height:1.6">1,357 小时 · 1,224 天 · 跨越 7 年的阅读轨迹</div>
     </div>
   </div>
   <div class="scroll-hint">向下滚动</div>
@@ -135,35 +93,14 @@
   <div class="section-label">Overview</div>
   <h2>阅读概览</h2>
   <div class="stat-grid">
-    <div class="stat-card">
-      <div class="stat-num">1,357</div>
-      <div class="stat-label">累计阅读（小时）</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-num">1,224</div>
-      <div class="stat-label">阅读天数</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-num">7</div>
-      <div class="stat-label">活跃年数</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-num">474h</div>
-      <div class="stat-label">最高年（2025）</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-num">298h</div>
-      <div class="stat-label">今年已读（2026）</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-num">65h</div>
-      <div class="stat-label">单月最高（4月）</div>
-    </div>
+    <div class="stat-card"><div class="stat-num">1,357</div><div class="stat-label">累计阅读（小时）</div></div>
+    <div class="stat-card"><div class="stat-num">1,224</div><div class="stat-label">阅读天数</div></div>
+    <div class="stat-card"><div class="stat-num">7</div><div class="stat-label">活跃年数</div></div>
+    <div class="stat-card"><div class="stat-num">474h</div><div class="stat-label">最高年（2025）</div></div>
+    <div class="stat-card"><div class="stat-num">298h</div><div class="stat-label">今年已读（2026）</div></div>
+    <div class="stat-card"><div class="stat-num">65h</div><div class="stat-label">单月最高（4月）</div></div>
   </div>
-  <div class="quote">
-    给岁月以文明，而不是给文明以岁月
-    <div class="quote-attrib">刘慈欣《三体》</div>
-  </div>
+  <div class="quote">给岁月以文明，而不是给文明以岁月<div class="quote-attrib">刘慈欣《三体》</div></div>
 </section>
 
 <!-- 3: YEARLY TREND -->
@@ -171,200 +108,263 @@
   <div class="section-label">Trend</div>
   <h2>年度阅读趋势</h2>
   <div class="chart" id="yearChart"></div>
-  <div style="color: #555; font-size: 0.85rem; margin-top: 10px;">
-    2024–2025 爆发式增长，2026 持续高位
-  </div>
+  <div style="color:#555;font-size:0.85rem;margin-top:10px">2024–2025 爆发式增长，2026 持续高位</div>
 </section>
 
-<!-- 4: MONTHLY 2026 -->
+<!-- 4: MONTHLY -->
 <section class="slide" id="s4">
   <div class="section-label">Monthly</div>
   <h2>今年阅读节奏</h2>
   <div class="chart" id="monthChart"></div>
-  <div style="color: #555; font-size: 0.85rem; margin-top: 10px;">
-    2–4 月高峰（月均 62h），日均超 2 小时
-  </div>
+  <div style="color:#555;font-size:0.85rem;margin-top:10px">2–4 月高峰（月均 62h），日均超 2 小时</div>
 </section>
 
-<!-- 5: 2026 BOOKS -->
+<!-- 5: 2026 GRID OVERVIEW -->
 <section class="slide" id="s5">
   <div class="section-label">2026 Reads</div>
   <h2>今年重点书目</h2>
   <div class="book-grid" id="books2026"></div>
-  <div class="quote" style="margin-top: 30px;">
-    恐惧是思维的杀手。我将面对我的恐惧，让它穿越我的身体。
-    <div class="quote-attrib">弗兰克·赫伯特《沙丘》</div>
+</section>
+
+<!-- 6: 沙丘六部曲 -->
+<section class="slide" id="s6">
+  <div class="section-label">2026 · Top Read</div>
+  <div class="book-detail">
+    <div class="book-detail-cover"><img src="https://cdn.weread.qq.com/weread/cover/61/yuewen_26859515/t7_yuewen_268595151708661295.jpg" alt="沙丘六部曲" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22267%22><rect fill=%22%231a1a1a%22 width=%22200%22 height=%22267%22/></svg>'"></div>
+    <div class="book-detail-info">
+      <div class="book-detail-title">沙丘六部曲</div>
+      <div class="book-detail-author">弗兰克·赫伯特</div>
+      <div class="book-detail-stats">106 小时 · 单日阅读最久</div>
+      <div class="book-detail-quotes">
+        <div class="book-detail-quote">
+          <div class="book-detail-quote-text">我绝不能恐惧。恐惧是思维的杀手。恐惧是引向彻底毁灭的小小死亡。我将直面我的恐惧，让它穿越我的身体。</div>
+          <div class="book-detail-quote-src">弗兰克·赫伯特《沙丘》</div>
+        </div>
+        <div class="book-detail-quote">
+          <div class="book-detail-quote-text">生命不是关于发现自我，而是关于创造自我。</div>
+          <div class="book-detail-quote-src">弗兰克·赫伯特《沙丘》</div>
+        </div>
+        <div class="book-detail-quote">
+          <div class="book-detail-quote-text">开始是一段非常危险的时刻。开始往往也是结束的开始。</div>
+          <div class="book-detail-quote-src">弗兰克·赫伯特《沙丘》</div>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 
-<!-- 6: TASTE PROFILE -->
-<section class="slide" id="s6">
+<!-- 7: 神经漫游者三部曲 -->
+<section class="slide" id="s7">
+  <div class="section-label">2026 · Cyberpunk</div>
+  <div class="book-detail">
+    <div class="book-detail-cover"><img src="https://cdn.weread.qq.com/weread/cover/11/3300009811/t7_3300009811.jpg" alt="神经漫游者三部曲" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22267%22><rect fill=%22%231a1a1a%22 width=%22200%22 height=%22267%22/></svg>'"></div>
+    <div class="book-detail-info">
+      <div class="book-detail-title">神经漫游者三部曲</div>
+      <div class="book-detail-author">威廉·吉布森</div>
+      <div class="book-detail-stats">29 小时</div>
+      <div class="book-detail-quotes">
+        <div class="book-detail-quote">
+          <div class="book-detail-quote-text">港口上空的天色如同关掉的电视机屏幕的颜色。</div>
+          <div class="book-detail-quote-src">威廉·吉布森《神经漫游者》</div>
+        </div>
+        <div class="book-detail-quote">
+          <div class="book-detail-quote-text">未来已经在这里，只是分布得不均匀。</div>
+          <div class="book-detail-quote-src">威廉·吉布森</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 8: 故事 -->
+<section class="slide" id="s8">
+  <div class="section-label">2026 · Craft</div>
+  <div class="book-detail">
+    <div class="book-detail-cover"><img src="https://wfqqreader-1252317822.image.myqcloud.com/cover/797/568797/t7_568797.jpg" alt="故事" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22267%22><rect fill=%22%231a1a1a%22 width=%22200%22 height=%22267%22/></svg>'"></div>
+    <div class="book-detail-info">
+      <div class="book-detail-title">故事：材质、结构、风格和银幕剧作的原理</div>
+      <div class="book-detail-author">罗伯特·麦基</div>
+      <div class="book-detail-stats">28 小时 · 笔记最多</div>
+      <div class="book-detail-quotes">
+        <div class="book-detail-quote">
+          <div class="book-detail-quote-text">故事是生活的比喻。它引导我们透过现象看到本质。</div>
+          <div class="book-detail-quote-src">罗伯特·麦基《故事》</div>
+        </div>
+        <div class="book-detail-quote">
+          <div class="book-detail-quote-text">一个优秀的故事不是告诉你世界是什么样，而是让你感受到世界可以是什么样。</div>
+          <div class="book-detail-quote-src">罗伯特·麦基《故事》</div>
+        </div>
+        <div class="book-detail-quote">
+          <div class="book-detail-quote-text">真正的写作是从内心开始的。如果你不能打动自己，就无法打动任何人。</div>
+          <div class="book-detail-quote-src">罗伯特·麦基《故事》</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 9: 冰与火之歌 -->
+<section class="slide" id="s9">
+  <div class="section-label">2026 · Reread</div>
+  <div class="book-detail">
+    <div class="book-detail-cover"><img src="https://cdn.weread.qq.com/weread/cover/8/yuewen_849878/t7_yuewen_8498781681371731.jpg" alt="冰与火之歌" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22267%22><rect fill=%22%231a1a1a%22 width=%22200%22 height=%22267%22/></svg>'"></div>
+    <div class="book-detail-info">
+      <div class="book-detail-title">冰与火之歌（续读）</div>
+      <div class="book-detail-author">乔治·R.R.马丁</div>
+      <div class="book-detail-stats">24 小时 · 累计 130 小时</div>
+      <div class="book-detail-quotes">
+        <div class="book-detail-quote">
+          <div class="book-detail-quote-text">混乱不是深渊。混乱是阶梯。很多人想往上爬，却摔了下来，再也爬不上去。</div>
+          <div class="book-detail-quote-src">乔治·R.R.马丁《冰与火之歌》</div>
+        </div>
+        <div class="book-detail-quote">
+          <div class="book-detail-quote-text">当你在权力的游戏中时，要么赢，要么死。没有中间地带。</div>
+          <div class="book-detail-quote-src">乔治·R.R.马丁《冰与火之歌》</div>
+        </div>
+        <div class="book-detail-quote">
+          <div class="book-detail-quote-text">一个人的真实性格，不是看他顺风顺水时怎么做，而是看他面临抉择和考验时怎么做。</div>
+          <div class="book-detail-quote-src">乔治·R.R.马丁《冰与火之歌》</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 10: 海底两万里 -->
+<section class="slide" id="s10">
+  <div class="section-label">2026 · Classic</div>
+  <div class="book-detail">
+    <div class="book-detail-cover"><img src="https://cdn.weread.qq.com/weread/cover/51/yuewen_25169132/t7_yuewen_251691321750667756.jpg" alt="海底两万里" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22267%22><rect fill=%22%231a1a1a%22 width=%22200%22 height=%22267%22/></svg>'"></div>
+    <div class="book-detail-info">
+      <div class="book-detail-title">海底两万里</div>
+      <div class="book-detail-author">儒勒·凡尔纳</div>
+      <div class="book-detail-stats">14 小时</div>
+      <div class="book-detail-quotes">
+        <div class="book-detail-quote">
+          <div class="book-detail-quote-text">大海就是一切！它覆盖着地球的十分之七。大海的呼吸纯洁而健康。在它的深处，人类永远不会孤独。</div>
+          <div class="book-detail-quote-src">儒勒·凡尔纳《海底两万里》</div>
+        </div>
+        <div class="book-detail-quote">
+          <div class="book-detail-quote-text">我爱大海！大海就是自然，大海就是无限的生命。</div>
+          <div class="book-detail-quote-src">儒勒·凡尔纳《海底两万里》</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 11: 2001:太空漫游 -->
+<section class="slide" id="s11">
+  <div class="section-label">2026 · Sci-Fi</div>
+  <div class="book-detail">
+    <div class="book-detail-cover"><img src="https://img2.doubanio.com/view/subject/s/public/s32330891.jpg" alt="2001：太空漫游" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22267%22><rect fill=%22%231a1a1a%22 width=%22200%22 height=%22267%22/></svg>'"></div>
+    <div class="book-detail-info">
+      <div class="book-detail-title">2001：太空漫游</div>
+      <div class="book-detail-author">阿瑟·克拉克</div>
+      <div class="book-detail-stats">12 小时</div>
+      <div class="book-detail-quotes">
+        <div class="book-detail-quote">
+          <div class="book-detail-quote-text">在寂静的宇宙中，任何声音都是一种亵渎。而人类的思维，是宇宙中最响亮的噪音。</div>
+          <div class="book-detail-quote-src">阿瑟·克拉克《2001：太空漫游》</div>
+        </div>
+        <div class="book-detail-quote">
+          <div class="book-detail-quote-text">我的上帝，全是星星……</div>
+          <div class="book-detail-quote-src">阿瑟·克拉克《2001：太空漫游》</div>
+        </div>
+        <div class="book-detail-quote">
+          <div class="book-detail-quote-text">人类对太空的想象，到《2001：太空漫游》为止。</div>
+          <div class="book-detail-quote-src">刘慈欣</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 12: TASTE PROFILE -->
+<section class="slide" id="s12">
   <div class="section-label">Profile</div>
   <h2>品味画像</h2>
   <div class="trait-list">
     <div class="trait-item">
       <div class="trait-label">SCI-FI</div>
       <div class="trait-title">科幻深度爱好者</div>
-      <div class="trait-desc">沙丘、三体、神经漫游者、太空漫游——从黄金时代到赛博朋克，横跨百年科幻史。对"异世界"的想象永不满足。</div>
+      <div class="trait-desc">沙丘、三体、神经漫游者、太空漫游——从黄金时代到赛博朋克，横跨百年科幻史。对异世界的想象永不满足。</div>
     </div>
     <div class="trait-item">
       <div class="trait-label">FANTASY</div>
       <div class="trait-title">史诗奇幻痴迷者</div>
-      <div class="trait-desc">冰与火之歌 130 小时居首，凡人修仙传 111 小时紧随。大格局的世界构建、权力博弈、修仙体系是你的精神食粮。</div>
+      <div class="trait-desc">冰与火之歌 130 小时居首，凡人修仙传 111 小时紧随。大格局的世界构建、权力博弈、修仙体系是精神食粮。</div>
     </div>
     <div class="trait-item">
       <div class="trait-label">LITERATURE</div>
       <div class="trait-title">俄国文学修养者</div>
-      <div class="trait-desc">战争与和平、安娜·卡列尼娜、卡拉马佐夫兄弟——三大部全啃完。托尔斯泰和陀思妥耶夫斯基双峰并立，这份阅读量极少人达到。</div>
+      <div class="trait-desc">战争与和平、安娜·卡列尼娜、卡拉马佐夫兄弟——三大部全啃完。托尔斯泰和陀思妥耶夫斯基双峰并立。</div>
     </div>
     <div class="trait-item">
       <div class="trait-label">CRAFT</div>
       <div class="trait-title">写作者视角</div>
-      <div class="trait-desc">《故事：材质、结构、风格和银幕剧作的原理》笔记最多——不只是读，更在拆解叙事的手艺。你在学习如何构建自己的世界。</div>
+      <div class="trait-desc">《故事》笔记最多——不只是读，更在拆解叙事的手艺。你在学习如何构建自己的世界。</div>
     </div>
   </div>
 </section>
 
-<!-- 7: READING → WRITING -->
-<section class="slide" id="s7">
+<!-- 13: READING → WRITING -->
+<section class="slide" id="s13">
   <div class="section-label">From Reading to Writing</div>
   <h2>阅读如何滋养创作</h2>
-  <p style="color: #888; font-size: 1rem; max-width: 600px; margin-bottom: 24px;">
-    你在创作的科幻长篇《临界点》（2099 年架空历史）——正是这些阅读品味的自然延伸。
-  </p>
+  <p style="color:#888;font-size:1rem;max-width:600px;margin-bottom:24px">你在创作的科幻长篇《临界点》（2099 年架空历史）——正是这些阅读品味的自然延伸。</p>
   <div class="influence-grid">
-    <div class="influence-item">
-      <div class="influence-tag">POLITICAL ALLEGORY</div>
-      <div class="influence-book">沙丘</div>
-      <div class="influence-impact">政治寓言 × 生态史诗</div>
-    </div>
-    <div class="influence-item">
-      <div class="influence-tag">COSMIC SCALE</div>
-      <div class="influence-book">三体</div>
-      <div class="influence-impact">宇宙尺度 × 文明博弈</div>
-    </div>
-    <div class="influence-item">
-      <div class="influence-tag">NARRATIVE</div>
-      <div class="influence-book">冰与火之歌</div>
-      <div class="influence-impact">多视角叙事 × 灰色人物</div>
-    </div>
-    <div class="influence-item">
-      <div class="influence-tag">CYBERPUNK</div>
-      <div class="influence-book">神经漫游者</div>
-      <div class="influence-impact">反乌托邦 × 赛博空间</div>
-    </div>
-    <div class="influence-item">
-      <div class="influence-tag">CRAFT</div>
-      <div class="influence-book">故事（麦基）</div>
-      <div class="influence-impact">叙事结构 × 场景法则</div>
-    </div>
-    <div class="influence-item">
-      <div class="influence-tag">HISTORICAL</div>
-      <div class="influence-book">战争与和平</div>
-      <div class="influence-impact">历史洪流 × 个人命运</div>
-    </div>
+    <div class="influence-item"><div class="influence-tag">POLITICAL ALLEGORY</div><div class="influence-book">沙丘</div><div class="influence-impact">政治寓言 × 生态史诗</div></div>
+    <div class="influence-item"><div class="influence-tag">COSMIC SCALE</div><div class="influence-book">三体</div><div class="influence-impact">宇宙尺度 × 文明博弈</div></div>
+    <div class="influence-item"><div class="influence-tag">NARRATIVE</div><div class="influence-book">冰与火之歌</div><div class="influence-impact">多视角叙事 × 灰色人物</div></div>
+    <div class="influence-item"><div class="influence-tag">CYBERPUNK</div><div class="influence-book">神经漫游者</div><div class="influence-impact">反乌托邦 × 赛博空间</div></div>
+    <div class="influence-item"><div class="influence-tag">CRAFT</div><div class="influence-book">故事（麦基）</div><div class="influence-impact">叙事结构 × 场景法则</div></div>
+    <div class="influence-item"><div class="influence-tag">HISTORICAL</div><div class="influence-book">战争与和平</div><div class="influence-impact">历史洪流 × 个人命运</div></div>
   </div>
-  <div class="quote" style="margin-top: 16px;">
-    一个好的故事不是告诉你世界是什么样，而是让你感受到世界可以是什么样。
-    <div class="quote-attrib">罗伯特·麦基《故事》</div>
-  </div>
+  <div class="quote" style="margin-top:16px">一个好的故事不是告诉你世界是什么样，而是让你感受到世界可以是什么样。<div class="quote-attrib">罗伯特·麦基《故事》</div></div>
 </section>
 
-<!-- 8: CLOSING -->
-<section class="slide" id="s8">
-  <div style="max-width: 600px; text-align: center; margin: 0 auto;">
-    <h2 style="margin-bottom: 16px;">继续读，继续写</h2>
-    <p style="color: #666; font-size: 0.95rem; line-height: 1.6;">
-      数据来源：微信读书 · 生成：Hermes AI<br>
-      Michael Gao · 2026
-    </p>
-    <div style="margin-top: 40px; color: #333; font-size: 0.7rem; letter-spacing: 0.2em;">
-      FIN
-    </div>
+<!-- 14: CLOSING -->
+<section class="slide" id="s14">
+  <div style="max-width:600px;text-align:center;margin:0 auto">
+    <h2 style="margin-bottom:16px">继续读，继续写</h2>
+    <p style="color:#666;font-size:0.95rem;line-height:1.6">数据来源：微信读书 · 生成：Hermes AI<br>Michael Gao · 2026</p>
+    <div style="margin-top:40px;color:#333;font-size:0.7rem;letter-spacing:0.2em">FIN</div>
   </div>
 </section>
 
 <script>
 const books2026 = [
-  { title: '沙丘六部曲', author: '弗兰克·赫伯特', hours: 106, cover: 'https://cdn.weread.qq.com/weread/cover/61/yuewen_26859515/s_yuewen_268595151708661295.jpg', note: '单日阅读最久' },
-  { title: '神经漫游者三部曲', author: '威廉·吉布森', hours: 29, cover: 'https://cdn.weread.qq.com/weread/cover/11/3300009811/s_3300009811.jpg', note: '赛博朋克圣经' },
-  { title: '故事', author: '罗伯特·麦基', hours: 28, cover: 'https://wfqqreader-1252317822.image.myqcloud.com/cover/797/568797/s_568797.jpg', note: '笔记最多' },
-  { title: '冰与火之歌（续）', author: '乔治·马丁', hours: 24, cover: 'https://cdn.weread.qq.com/weread/cover/8/yuewen_849878/s_yuewen_8498781681371731.jpg', note: '持续重读' },
-  { title: '海底两万里', author: '儒勒·凡尔纳', hours: 14, cover: 'https://cdn.weread.qq.com/weread/cover/51/yuewen_25169132/s_yuewen_251691321750667756.jpg', note: '经典科幻' },
-  { title: '2001:太空漫游', author: '阿瑟·克拉克', hours: 12, cover: 'https://res.weread.qq.com/wrepub/CB_AYt5V55WC02f72D71F39e9PQ_parsecover', note: '刘慈欣的启蒙' },
+  {title:'沙丘六部曲',author:'弗兰克·赫伯特',hours:106,cover:'https://cdn.weread.qq.com/weread/cover/61/yuewen_26859515/t7_yuewen_268595151708661295.jpg',note:'单日阅读最久'},
+  {title:'神经漫游者三部曲',author:'威廉·吉布森',hours:29,cover:'https://cdn.weread.qq.com/weread/cover/11/3300009811/t7_3300009811.jpg',note:'赛博朋克圣经'},
+  {title:'故事',author:'罗伯特·麦基',hours:28,cover:'https://wfqqreader-1252317822.image.myqcloud.com/cover/797/568797/t7_568797.jpg',note:'笔记最多'},
+  {title:'冰与火之歌（续）',author:'乔治·马丁',hours:24,cover:'https://cdn.weread.qq.com/weread/cover/8/yuewen_849878/t7_yuewen_8498781681371731.jpg',note:'累计130h'},
+  {title:'海底两万里',author:'儒勒·凡尔纳',hours:14,cover:'https://cdn.weread.qq.com/weread/cover/51/yuewen_25169132/t7_yuewen_251691321750667756.jpg',note:'经典科幻'},
+  {title:'2001:太空漫游',author:'阿瑟·克拉克',hours:12,cover:'https://img2.doubanio.com/view/subject/s/public/s32330891.jpg',note:'刘慈欣的启蒙'},
 ];
-
-const yearData = [81, 16, 11, 11, 81, 384, 474, 298];
-const yearLabels = ['2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
-const monthData = [39, 63, 59, 65, 44, 28];
+const yearData = [81,16,11,11,81,384,474,298];
+const yearLabels = ['2019','2020','2021','2022','2023','2024','2025','2026'];
+const monthData = [39,63,59,65,44,28];
 const monthLabels = ['1月','2月','3月','4月','5月','6月'];
 
-function buildChart(id, data, labels) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  const max = Math.max(...data);
-  el.innerHTML = data.map((v, i) => `
-    <div class="chart-bar-wrap">
-      <div class="chart-val">${v}h</div>
-      <div class="chart-bar" style="height: ${(v/max)*100}%;"></div>
-      <div class="chart-label">${labels[i]}</div>
-    </div>
-  `).join('');
+function buildChart(id,data,labels){
+  const el=document.getElementById(id);if(!el)return;
+  const max=Math.max(...data);
+  el.innerHTML=data.map((v,i)=>'<div class="chart-bar-wrap"><div class="chart-val">'+v+'h</div><div class="chart-bar" style="height:'+(v/max)*100+'%"></div><div class="chart-label">'+labels[i]+'</div></div>').join('');
 }
-
-function build2026Grid() {
-  const el = document.getElementById('books2026');
-  if (!el) return;
-  el.innerHTML = books2026.map(b => `
-    <div class="book-card">
-      <img class="book-cover" src="${b.cover}" alt="${b.title}" loading="lazy"
-        onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22140%22 height=%22187%22><rect fill=%22%231a1a1a%22 width=%22140%22 height=%22187%22/></svg>'">
-      <div class="book-title">${b.title}</div>
-      <div class="book-author">${b.author}</div>
-      <div class="book-hours">${b.hours}h · ${b.note}</div>
-    </div>
-  `).join('');
+function build2026Grid(){
+  const el=document.getElementById('books2026');if(!el)return;
+  el.innerHTML=books2026.map(b=>'<div class="book-card"><img class="book-cover" src="'+b.cover+'" alt="'+b.title+'" loading="lazy" onerror="this.src=\'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22140%22 height=%22187%22><rect fill=%22%231a1a1a%22 width=%22140%22 height=%22187%22/></svg>\'"><div class="book-title">'+b.title+'</div><div class="book-author">'+b.author+'</div><div class="book-hours">'+b.hours+'h · '+b.note+'</div></div>').join('');
 }
-
-function initNav() {
-  const slides = document.querySelectorAll('.slide');
-  const nav = document.getElementById('navDots');
-  slides.forEach((_, i) => {
-    const dot = document.createElement('button');
-    dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
-    dot.setAttribute('aria-label', 'Slide ' + (i+1));
-    dot.addEventListener('click', () => slides[i].scrollIntoView({ behavior: 'smooth' }));
-    nav.appendChild(dot);
-  });
-  const observer = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const idx = Array.from(slides).indexOf(entry.target);
-        document.querySelectorAll('.nav-dot').forEach((d, i) => d.classList.toggle('active', i === idx));
-      }
-    });
-  }, { threshold: 0.5 });
-  slides.forEach(s => observer.observe(s));
+function initNav(){
+  const slides=document.querySelectorAll('.slide');
+  const nav=document.getElementById('navDots');
+  slides.forEach((_,i)=>{const dot=document.createElement('button');dot.className='nav-dot'+(i===0?' active':'');dot.setAttribute('aria-label','Slide '+(i+1));dot.addEventListener('click',()=>slides[i].scrollIntoView({behavior:'smooth'}));nav.appendChild(dot)});
+  const observer=new IntersectionObserver(entries=>{entries.forEach(entry=>{if(entry.isIntersecting){const idx=Array.from(slides).indexOf(entry.target);document.querySelectorAll('.nav-dot').forEach((d,i)=>d.classList.toggle('active',i===idx))}})},{threshold:0.5});
+  slides.forEach(s=>observer.observe(s));
 }
-
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
-    e.preventDefault();
-    const next = document.querySelector('.nav-dot.active')?.nextElementSibling;
-    if (next) next.click();
-  } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
-    e.preventDefault();
-    const prev = document.querySelector('.nav-dot.active')?.previousElementSibling;
-    if (prev) prev.click();
-  }
-});
-
-document.addEventListener('DOMContentLoaded', () => {
-  buildChart('yearChart', yearData, yearLabels);
-  buildChart('monthChart', monthData, monthLabels);
-  build2026Grid();
-  initNav();
-});
+document.addEventListener('keydown',e=>{if(e.key==='ArrowDown'||e.key==='ArrowRight'){e.preventDefault();const next=document.querySelector('.nav-dot.active')?.nextElementSibling;if(next)next.click()}else if(e.key==='ArrowUp'||e.key==='ArrowLeft'){e.preventDefault();const prev=document.querySelector('.nav-dot.active')?.previousElementSibling;if(prev)prev.click()}});
+document.addEventListener('DOMContentLoaded',()=>{buildChart('yearChart',yearData,yearLabels);buildChart('monthChart',monthData,monthLabels);build2026Grid();initNav()});
 </script>
 </body>
 </html>
